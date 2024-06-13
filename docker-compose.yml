@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  task-api:
+    container_name: task-api
+    build:
+      context: .
+      target: production
+    ports:
+      - '3000:3000'
+    restart: unless-stopped
+    links:
+      - mongo
+    env_file:
+      - .env
+    environment:
+      - PORT=3000
+      - MONGODB_URI=mongodb://mongo:27017/tasks
+    depends_on:
+      - mongo
+
+  test:
+    container_name: test
+    build:
+      context: .
+      target: test
+    links:
+      - mongo
+    env_file:
+      - .env
+    environment:
+      - PORT=3000
+      - MONGODB_URI=mongodb://mongo:27017/tasks_test
+    depends_on:
+      - mongo
+    command: ["yarn", "test"]
+
+  mongo:
+    container_name: mongo
+    image: mongo:latest
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo-data:/data/db
+
+volumes:
+  mongo-data:
